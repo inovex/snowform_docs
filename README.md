@@ -1,10 +1,10 @@
-# snowtf_docs
-Documentation for the SnowTF, a modular terraform based snowflake template
+# snowform_docs
+Documentation for the SnowForm, a modular terraform based snowflake template
 
 
 ## Introduction:
 ### What is SnowForm:
-SnowForm is a modular snowflake template based on the official Snowflake Terraform provider. It enables developers to quickly set up a new snowflake account following best practices and guidelines.
+SnowForm is a modular snowflake template exploiding individually configurable Terraform modules, based on the official Snowflake Terraform provider. It enables developers to quickly set up a new snowflake account following best practices and guidelines. 
 
 ### For whom we build it:
 The architecture of SnowForm is specifically designed to support smaller teams or individual administrators managing a Snowflake account. The architecture is intentionally straightforward, making it easy to customize and extend to meet specific organizational requirements.
@@ -30,12 +30,12 @@ The hierarchy is carefully structured where each higher-level role inherits from
 This module streamlines the process of importing external data shares into our Snowflake account. It automates the creation of shared databases from external providers and manages the complex privilege assignment process. The module takes share identifiers (typically in format "PROVIDER_ACCOUNT"."SHARE_GROUP"."SHARE_NAME") and creates corresponding databases while granting IMPORTED PRIVILEGES to specified roles. This approach centralizes share management and ensures consistent access patterns across imported data sources.
 
 3. Logical Data Organization - [snowform_logical_import_layer](https://github.com/inovex/snowform_logical_import_layer):  <br>
-This module addresses the challenge of organizing disparate imported data sources into coherent business-aligned structures. It creates a mapping layer that allows teams to consolidate related data from multiple sources into unified logical views or dynamic tables.
+This module addresses the challenge of organizing disparate imported data sources into coherent business-aligned structures. It creates a mapping layer that allows teams to consolidate related data from multiple sources into unified logical views or dynamic tables. The module employs a Python-based stored procedure approach to maintain column comments and metadata during the view creation process. This ensures that important data lineage and documentation are preserved when restructuring imported data. Teams can choose between standard views for simpler use cases or dynamic tables for scenarios requiring materialized results with configurable refresh patterns.
 
 4. Example Usage - [snowform_example_usage](https://github.com/inovex/snowform_example_usage):  <br>
 While not beeing a modul adding functionality, it examplifies how a Snowflake-Account can be set up using the above modules. 
 
-The module employs a Python-based stored procedure approach to maintain column comments and metadata during the view creation process. This ensures that important data lineage and documentation are preserved when restructuring imported data. Teams can choose between standard views for simpler use cases or dynamic tables for scenarios requiring materialized results with configurable refresh patterns.
+
 
 # Env setup
 
