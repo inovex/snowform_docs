@@ -1,84 +1,24 @@
 # This workflow's name, displayed in the GitHub Actions UI.
-name: "Pull Request Docs Build and Deploy"
+name: "Docs Build and Deploy"
 
-# Triggers the workflow on pull request events.
+# Build on every PR (validation) and on pushes to main (validation + deploy).
 on:
   pull_request:
-    # Optionally, you can specify branches to run on, e.g.,
-    # branches:
-    #   - main
-    #   - master
+  push:
+    branches:
+      - main
 
 # Define the jobs that will run as part of this workflow.
 jobs:
-  # Job to build the Sphinx documentation.
+  # Job to build the Sphinx documentation. Runs for PRs and pushes to main.
   build-docs:
-    # The type of runner the job will execute on.
     runs-on: ubuntu-latest
 
-    # Permissions needed for this job.
     # `contents: read` is needed to checkout the repository.
-    # `actions: write` is needed for `upload-artifact`.
     permissions:
       contents: read
-      actions: write
 
-    # Steps define the sequence of tasks for this job.
     steps:
-      # Step 1: Checkout the repository code.
-      # Uses actions/checkout@v4 for improved performance and features.
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # Step 2: Set up Python environment.
-      # Sphinx requires Python to run.
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          # Specify the Python version to use.
-          python-version: '3.x' # Use '3.x' to get the latest Python 3.
-
-      # Step 3: Install Sphinx and other dependencies.
-      # Assumes your Sphinx documentation might have a requirements.txt file.
-      - name: Install Sphinx and dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install sphinx # Install Sphinx core
-          # If you have a requirements.txt for your docs, uncomment the line below:
-          pip install -r requirements.txt
-
-      # Step 4: Build the Sphinx documentation.
-      # This explicitly runs the 'make html' command in your root directory.
-      - name: Build Sphinx HTML documentation
-        run: |
-          make html
-        # Ensure the build command exits successfully.
-
-      # # Step 5: Upload the built documentation as an artifact.
-      # # This artifact will be downloaded by the deployment job.
-      # # Uses actions/upload-artifact@v4 for improved performance and features.
-      # - name: Upload documentation artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     # Name of the artifact. This name is important for the download step.
-      #     name: github-pages
-      #     # Path to the built HTML documentation.
-      #     path: _build/html/
-      #     # Retain the artifact for a short period (e.g., 1 day) for debugging.
-      #     retention-days: 1
-
-  # Job to deploy the built documentation to GitHub Pages.
-  deploy-pages:
-    needs: build-docs
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      # Instead of downloading an artifact, just use the built files directly.
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -90,19 +30,32 @@ jobs:
       - name: Install Sphinx and dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install sphinx
           pip install -r requirements.txt
 
       - name: Build Sphinx HTML documentation
-        run: |
-          make html
+        run: make html
 
+      # Only package the build for deployment when it will actually be deployed.
       - name: Upload GitHub Pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
           path: "_build/html/"
 
+  # Job to deploy the built documentation to GitHub Pages.
+  # Only runs on pushes to main, never for pull requests (including forks,
+  # which don't have the required Pages/OIDC token permissions anyway).
+  deploy-pages:
+    needs: build-docs
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
