@@ -47,7 +47,7 @@ Why is SnowTF better?
 .. _KICS: https://kics.io/
 .. _official Snowflake Terraform provider: https://registry.terraform.io/providers/snowflakedb/snowflake/latest/docs
 .. _convention for object identifiers: https://docs.snowddl.com/guides/object-identifiers
-.. _Snowflake identifier requirement: https://docs.snowflake.com/en/sql-reference/identifiers-syntax
+.. _Snowflake identifier requirements: https://docs.snowflake.com/en/sql-reference/identifiers-syntax
 
 Similarities and Differences
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
