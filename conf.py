@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'SnowTF'
+project = 'SnowForm'
 copyright = '2025, Darjan Salaj, Julian Seither, Max Koeppel'
 author = 'Darjan Salaj, Julian Seither, Max Koeppel'
 
