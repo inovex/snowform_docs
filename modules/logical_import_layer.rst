@@ -1,14 +1,14 @@
-Logical import layer
+Logical Import Layer
 ====================
 
 `snowform_logical_import_layer`_ puts tables and views from imported databases into your own structure.
 You map each source object to a target database, schema and name, for example to collect all product data from several shares in one ``PRODUCTS`` schema.
-Consumers then only need access to your databases, not to every share.
+Consumers then only need access to your databases, and the shares stay an internal detail.
 
 .. _snowform_logical_import_layer: https://github.com/inovex/snowform_logical_import_layer
 
 
-How it works
+How It Works
 ------------
 
 By default the module creates a view for every mapping.
@@ -21,7 +21,7 @@ With ``resource_type = "dynamic_table"`` you get dynamic tables instead, which s
 The roles in ``database_role_grants`` get ``USAGE`` on the target database and on all current and future schemas in it, plus ``SELECT`` on all current and future views.
 
 
-Before you start
+Before You Start
 ----------------
 
 * The source objects and the target databases and schemas have to exist already.
@@ -91,8 +91,8 @@ Inputs
 The outputs list the procedure name, the created views or dynamic tables, and the granted databases and roles.
 
 
-Known limitations
+Known Limitations
 -----------------
 
 * The read grants only cover views. With ``resource_type = "dynamic_table"``, grant ``SELECT`` on the dynamic tables yourself.
-* If the procedure fails, it returns an error message instead of raising an error. Terraform then reports success even though the view wasn't created, so check the views after the first deploy.
+* If the procedure fails, it returns an error message instead of raising an error. Terraform then reports success even though the view was not created, so check the views after the first deploy.
