@@ -1,4 +1,4 @@
-.. SnowTF documentation master file, created by
+.. SnowForm documentation master file, created by
    sphinx-quickstart on Tue Jul  1 10:19:37 2025.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
@@ -6,10 +6,10 @@
 ❄ Introduction
 ================
 
-SnowTF is a modular snowflake template based on `official Snowflake Terraform provider`_.
+SnowForm is a modular snowflake template based on `official Snowflake Terraform provider`_.
 It enables developers to quickly set up a new snowflake account following best practices and guidelines.
 
-The architecture of SnowTF template is specifically designed to support smaller teams or individual administrators managing a Snowflake account.
+The architecture of SnowForm template is specifically designed to support smaller teams or individual administrators managing a Snowflake account.
 By prioritizing transparency and modularity, the system enhances clarity and facilitates faster learning and understanding of the underlying entities.
 The architecture is intentionally straightforward, making it easy to customize and extend to meet specific organizational requirements.
 
@@ -32,8 +32,8 @@ Why is SnowDDL better?
 
 .. _role hierarchy: https://docs.snowddl.com/guides/role-hierarchy#rationale
 
-Why is SnowTF better?
-^^^^^^^^^^^^^^^^^^^^^
+Why is SnowForm better?
+^^^^^^^^^^^^^^^^^^^^^^^
 
 * Built on the `official Snowflake Terraform provider`_, ensuring reliability and ongoing support.
 * Deployment logic and mechanisms are delegated to the official provider, leveraging existing team expertise with Terraform.
@@ -53,26 +53,26 @@ Similarities and Differences
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * For RBAC SnowDDL uses a strict `3 tier system`_: access, business, and user roles. That means every user has a dedicated user role.
-  In SnowTF we follow the `simplified recommendation with access and functional roles`_ (analog to first two tiers of SnowDDL system), but skip the individual user roles.
+  In SnowForm we follow the `simplified recommendation with access and functional roles`_ (analog to first two tiers of SnowDDL system), but skip the individual user roles.
   As a replacement, admins can rely on custom roles usually managed externally by an IAM system.
   This can be freely combined with any additional user, team, use case roles that are freely definable and managed by the developers.
   This way we ensure the flexibility of our template and give developers the freedom to extend the RBAC system as they see fit.
 
 * SnowDDL doesn't use the native Snowflake secondary roles feature as it is redundant with the tier 3 user roles layer.
-  SnowTF does not enforce the third tier of user roles and the secondary roles feature is enabled by default as per official Snowflake configuration.
-  We made this decision for SnowTF as we want to make our users aware of the roles they are assigned and are currently using.
+  SnowForm does not enforce the third tier of user roles and the secondary roles feature is enabled by default as per official Snowflake configuration.
+  We made this decision for SnowForm as we want to make our users aware of the roles they are assigned and are currently using.
   That way the RBAC system is more transparent and the non-technical users have a better intuition of what is needed when onboarding new users or communicating eventual issues.
   However this is only the default behaviour and the user roles can easily be implemented as additional roles layer if needed.
   For enterprice ettings we recommend using the established IAM system for managing the "third tier" of user or team roles for better security and easier auditing.
 
 * SnowDDL: ``Unused roles for non-existent schemas, warehouses, shares, users are dropped automatically. It helps to reduce amount of "orphan" roles in account.``
-  SnowTF does not introduce any automation! No entities are added or deleted automatically uness so declaratively specifified by a developer.
+  SnowForm does not introduce any automation! No entities are added or deleted automatically uness so declaratively specifified by a developer.
   Instead we focus on not introducing any unnecessary or unused entities into the system.
-  The only exception where SnowTF might introduce unused entities is with the access roles module (TODO add link) where all the access roles are created for specified databases and schemas.
+  The only exception where SnowForm might introduce unused entities is with the `access roles module`_ where all the access roles are created for specified databases and schemas.
 
 TODOs
 -----
-* which grants are included in SnowTF access_roles? https://docs.snowddl.com/basic/yaml-configs/permission-model
+* which grants are included in SnowForm access_roles? https://docs.snowddl.com/basic/yaml-configs/permission-model
 
   * We need to extend the grants to all relevant permissions and make it configurable
 
@@ -84,6 +84,7 @@ TODOs
 * research https://docs.snowddl.com/guides/other-guides/ownership
 * Exlplizitely write that our dependencies are managed in terraform VS SnowDDL own mechanism https://docs.snowddl.com/guides/other-guides/dependency-management
 
+.. _access roles module: https://github.com/inovex/snowform_access_roles
 .. _3 tier system: https://docs.snowddl.com/guides/role-hierarchy#general-overview
 .. _simplified recommendation with access and functional roles: https://docs.snowflake.com/en/user-guide/security-access-control-overview#roles
 
