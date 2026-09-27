@@ -18,6 +18,10 @@ extensions = []
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
+# The Pygments HCL lexer can't parse valid HCL like `module.x.r["KEY"].name` and
+# falls back to relaxed highlighting, which renders fine
+suppress_warnings = ['misc.highlighting_failure']
+
 
 
 # -- Options for HTML output -------------------------------------------------
