@@ -1,4 +1,4 @@
-Access roles
+Access Roles
 ============
 
 `snowform_access_roles`_ creates three access roles for every schema you list, following Snowflake's `recommendation for access roles`_.
@@ -8,7 +8,7 @@ Your functional roles, like a consumer or developer role, then get one of these 
 .. _recommendation for access roles: https://docs.snowflake.com/en/user-guide/security-access-control-considerations#aligning-object-access-with-business-functions
 
 
-Roles and hierarchy
+Roles and Hierarchy
 -------------------
 
 For a database ``SALES`` and a schema ``RAW`` you get:
@@ -60,7 +60,7 @@ The read and write privileges are granted on all existing objects and on future 
 That covers the ``CREATE`` privileges for every object type, plus ``MODIFY`` and ``MONITOR`` on the schema.
 
 The grants on all existing objects use ``always_apply``, so every plan shows them as changes.
-That's expected: running them again gives objects created outside Terraform the same access.
+That is expected: running them again gives objects created outside Terraform the same access.
 
 
 Usage
@@ -91,11 +91,11 @@ Usage
      parent_role_name = snowflake_account_role.analyst.name
    }
 
-The module doesn't create the database or the schemas.
+The module does not create the database or the schemas.
 Create them first and list them in ``depends_on``.
 
 
-Inputs and outputs
+Inputs and Outputs
 ------------------
 
 .. list-table::
@@ -121,7 +121,7 @@ SnowForm has no owner role.
 Objects are owned by the role that created them, usually ``SYSADMIN``, and ``FULL`` gets the privileges to create and manage them.
 
 SnowDDL also lets you change the privileges per object type in YAML.
-In SnowForm they're fixed in the module for now.
+In SnowForm they are fixed in the module for now.
 Making them configurable is on the :ref:`roadmap <roadmap>`.
 
 .. _permission model: https://docs.snowddl.com/basic/yaml-configs/permission-model

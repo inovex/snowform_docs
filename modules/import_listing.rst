@@ -1,4 +1,4 @@
-Import listing
+Import Listing
 ==============
 
 `snowform_import_listing`_ imports Snowflake shares from other accounts as databases, and grants ``IMPORTED PRIVILEGES`` on them to the roles you list.
@@ -29,7 +29,7 @@ Usage
    }
 
 
-Finding the share name
+Finding the Share Name
 ----------------------
 
 Before you can import a share, the provider has to approve your request:
@@ -39,7 +39,7 @@ Before you can import a share, the provider has to approve your request:
 #. Run ``SHOW SHARES;``. The share name is ``<owner_account>.<name>`` from the result, for example ``ACME_ORG.XY12345.SALES_DATA_SHARE``.
 
 
-Inputs and outputs
+Inputs and Outputs
 ------------------
 
 .. list-table::

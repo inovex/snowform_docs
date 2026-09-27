@@ -18,7 +18,7 @@ Prerequisites
 .. _OpenTofu: https://opentofu.org/docs/intro/install/
 
 
-1. Create the deploy user
+1. Create the Deploy User
 -------------------------
 
 Terraform runs as a service user that logs in with a key pair.
@@ -48,11 +48,11 @@ Paste the public key without the ``BEGIN`` and ``END`` lines:
    GRANT ROLE SYSADMIN TO USER SNOWFLAKE_DEPLOY;
    GRANT ROLE SECURITYADMIN TO USER SNOWFLAKE_DEPLOY;
 
-The deploy user doesn't need ``ACCOUNTADMIN``.
-The few things only ``ACCOUNTADMIN`` can do, like granting access to the ``SNOWFLAKE`` database, are one time steps you run by hand.
+The deploy user does not need ``ACCOUNTADMIN``.
+A few steps need ``ACCOUNTADMIN``, like granting access to the ``SNOWFLAKE`` database, and you run them once by hand.
 
 
-2. Configure the providers
+2. Configure the Providers
 --------------------------
 
 SnowForm modules never configure a provider themselves.
@@ -80,11 +80,12 @@ They expect three aliased providers, one per system role, so every object is cre
 
 Give the ``securityadmin`` provider a warehouse too, and grant ``SECURITYADMIN`` usage on it.
 Some reads, like the one after attaching an authentication policy to a user, fail without one.
-Some resources are preview features in the provider and have to be listed in ``preview_features_enabled``.
+
+Several resources are preview features in the provider and have to be listed in ``preview_features_enabled``.
 The module pages say which ones.
 
 
-3. Set up the state backend
+3. Set Up the State Backend
 ---------------------------
 
 Use a remote backend with locking from the start.
@@ -105,7 +106,7 @@ Its README explains how to restore an older state version.
 .. _setup script: https://github.com/inovex/snowform_example_usage/blob/main/scripts/setup_gcp_state_backend.sh
 
 
-4. Add the modules
+4. Add the Modules
 ------------------
 
 Reference each module by a release tag.

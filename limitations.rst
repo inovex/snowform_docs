@@ -2,11 +2,11 @@
 ===============
 
 
-Objects the provider doesn't support yet
-----------------------------------------
+Objects the Provider Does Not Support Yet
+-----------------------------------------
 
-The official provider doesn't cover every Snowflake object, and some resources are only available as preview features.
-For everything else there's the ``snowflake_execute`` resource: it runs one SQL statement on create and another one on destroy.
+The official provider does not cover every Snowflake object, and some resources are only available as preview features.
+For everything else there is the ``snowflake_execute`` resource: it runs one SQL statement on create and another one on destroy.
 
 .. code-block:: hcl
 
@@ -17,39 +17,40 @@ For everything else there's the ``snowflake_execute`` resource: it runs one SQL 
    }
 
 The example repository uses it the same way to create a Snowflake-managed MCP server, which has no resource yet.
-Keep these cases rare, because ``snowflake_execute`` doesn't detect changes made outside Terraform.
+Keep these cases rare, because ``snowflake_execute`` does not detect changes made outside Terraform.
 It only runs ``revert`` and then ``execute`` again when the SQL itself changes.
-If an object created this way loses grants when it's replaced, add ``replace_triggered_by`` to the grant, so it's granted again too.
+If an object created this way loses grants when it is replaced, add ``replace_triggered_by`` to the grant, so it is granted again too.
 
 For statements over several lines or with results you need to read back, the `Snowflake SQL provider`_ is an alternative.
 
 .. _Snowflake SQL provider: https://registry.terraform.io/providers/aidanmelen/snowsql/latest/docs
 
 
-Partial application of changes
+Partial Application of Changes
 ------------------------------
 
 Snowflake runs DDL statements one by one and commits each of them right away.
 If an apply fails halfway, the account is left somewhere between the old and the new configuration.
 
 SnowDDL handles this by `repairing`_ the objects on its next run.
-SnowForm relies on Terraform's own mechanism instead: the state records every resource as soon as it's created, also when the apply fails later.
+SnowForm relies on Terraform's own mechanism instead: the state records every resource as soon as it is created, also when the apply fails later.
 Fix the error and run plan and apply again.
-Terraform only creates what's still missing, and replaces resources it marked as tainted because they failed halfway.
+Terraform only creates what is still missing, and replaces resources it marked as tainted because they failed halfway.
 You can repeat this as often as needed.
 
 Two things make this work reliably:
 
-* A remote state backend. If the state from the failed run is lost, the next run doesn't know about the objects that were already created, and fails with ``already exists``.
-* Explicit ``depends_on`` between resources that Terraform can't link by reference, like a grant on a schema that's created elsewhere. Without it, Terraform can run them in parallel, and the grant fails because the schema doesn't exist yet.
+* A remote state backend. If the state from the failed run is lost, the next run does not know about the objects that were already created, and fails with ``already exists``.
+* Explicit ``depends_on`` between resources that Terraform cannot link by reference, like a grant on a schema that is created elsewhere. Without it, Terraform can run them in parallel, and the grant fails because the schema does not exist yet.
 
 .. _repairing: https://docs.snowddl.com/guides/other-guides/limitations-and-workarounds#partial-application-of-config
 
 
-Renaming objects
+Renaming Objects
 ----------------
 
-SnowDDL uses full object names as identifiers, so a rename in its config means dropping the old object and creating a new one, unless you rename it by hand first (see `SnowDDL renaming`_).
+SnowDDL uses full object names as identifiers.
+A rename in its config therefore drops the old object and creates a new one, unless you rename it by hand first (see `SnowDDL renaming`_).
 
 In SnowForm, changing the ``name`` of a database, schema, warehouse or role renames it in place with ``ALTER ... RENAME TO``.
 Data and ownership stay, and grants that reference the object are revoked and granted again under the new name.
@@ -70,7 +71,7 @@ The same applies to modules and to ``for_each`` keys, for example when a schema 
 .. _SnowDDL renaming: https://docs.snowddl.com/guides/other-guides/limitations-and-workarounds#renaming-of-objects
 
 
-Lowercase identifiers
+Lowercase Identifiers
 ---------------------
 
 Lowercase and mixed case identifiers work and behave like they do in Snowflake: they have to be quoted everywhere.
