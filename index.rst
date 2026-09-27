@@ -6,85 +6,103 @@
 ❄ Introduction
 ================
 
-SnowForm is a modular snowflake template based on `official Snowflake Terraform provider`_.
-It enables developers to quickly set up a new snowflake account following best practices and guidelines.
+SnowForm is a modular template for Snowflake accounts, built on the `official Snowflake Terraform provider`_.
+It helps you set up a new account quickly while following Snowflake's best practices.
 
-The architecture of SnowForm template is specifically designed to support smaller teams or individual administrators managing a Snowflake account.
-By prioritizing transparency and modularity, the system enhances clarity and facilitates faster learning and understanding of the underlying entities.
-The architecture is intentionally straightforward, making it easy to customize and extend to meet specific organizational requirements.
+It's made for smaller teams or a single administrator managing a Snowflake account.
+The setup is intentionally simple and transparent, so it's easy to understand what every object is for, and easy to extend for your own requirements.
+
+Each part is a separate Terraform module, see :doc:`modules/index`.
+To set up an account, start with :doc:`getting_started`.
 
 .. _official Snowflake Terraform provider: https://registry.terraform.io/providers/snowflakedb/snowflake/latest/docs
 
 Differences to SnowDDL
 ----------------------
 
-`SnowDDL`_ is a standalone tool that can be used to manage snowflake accounts.
+`SnowDDL`_ is a standalone tool for managing Snowflake accounts.
 
 .. _SnowDDL: https://docs.snowddl.com/
 
-Why is SnowDDL better?
-^^^^^^^^^^^^^^^^^^^^^^
+Where SnowDDL is stronger
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* Stateless operation: SnowDDL queries the Snowflake account directly to determine the current state, ensuring synchronization with any manual changes.
-* Offers a more opinionated and highly configurable approach, making it well-suited for managing large Snowflake accounts and supporting larger teams.
-* Provides a predefined, fine-grained `role hierarchy`_ to facilitate granular access control and permission management.
-* During the setup of a large account, all configuration options must be reviewed and explicitly defined, ensuring that long-term architectural decisions are considered up front.
+* It's stateless. SnowDDL reads the current state directly from the account, so it always sees manual changes.
+* It's more opinionated and very configurable, which suits large accounts and larger teams.
+* It comes with a predefined, fine grained `role hierarchy`_.
+* Setting up a large account makes you review and define every option explicitly, so long term decisions are made up front.
 
 .. _role hierarchy: https://docs.snowddl.com/guides/role-hierarchy#rationale
 
-Why is SnowForm better?
-^^^^^^^^^^^^^^^^^^^^^^^
+Where SnowForm is stronger
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* Built on the `official Snowflake Terraform provider`_, ensuring reliability and ongoing support.
-* Deployment logic and mechanisms are delegated to the official provider, leveraging existing team expertise with Terraform.
-* Lightweight architecture enables rapid onboarding and ease of use.
-* All resources, including deployment users, are defined declaratively in Terraform, providing full transparency and auditability.
-* Fully compatible with `KICS`_, other security tools, and the broader Terraform ecosystem.
-* Flexible design tailored for specialized and smaller teams.
-* Supports incremental adoption and decommissioning, allowing components to be added, removed, or replaced in a controlled and gradual manner.
-* Follows only the official Snowflake best practices. For Example SnowDDL enforces a `convention for object identifiers`_, while we only follow the `Snowflake identifier requirements`_.
+* It's built on the `official Snowflake Terraform provider`_, which is maintained and supported by Snowflake.
+* The deployment itself is left to the provider and Terraform, so teams can use the Terraform experience they already have.
+* It's lightweight, so getting started is quick.
+* Everything after the initial deploy user is defined in Terraform, which makes the account transparent and easy to audit.
+* It works with `KICS`_, other security scanners and the rest of the Terraform ecosystem.
+* You can adopt it step by step, and add, remove or replace modules one at a time.
+* It only follows Snowflake's own best practices. For example, SnowDDL enforces a `convention for object identifiers`_, while SnowForm only follows the `Snowflake identifier requirements`_.
 
 .. _KICS: https://kics.io/
-.. _official Snowflake Terraform provider: https://registry.terraform.io/providers/snowflakedb/snowflake/latest/docs
 .. _convention for object identifiers: https://docs.snowddl.com/guides/object-identifiers
 .. _Snowflake identifier requirements: https://docs.snowflake.com/en/sql-reference/identifiers-syntax
 
-Similarities and Differences
+Role hierarchy
+^^^^^^^^^^^^^^
+
+SnowDDL uses a strict `3 tier system`_ of access, business and user roles, so every user has a dedicated user role.
+SnowForm follows Snowflake's `simplified recommendation with access and functional roles`_, which matches SnowDDL's first two tiers, and skips the user roles.
+Instead, you can use roles managed by an external IAM system, and combine them with any user, team or use case roles your developers define.
+
+SnowDDL doesn't use Snowflake's secondary roles, since its user roles make them redundant.
+In SnowForm, secondary roles stay enabled, which is Snowflake's default.
+That way users see which roles they have and which one they're using, which helps when onboarding people or tracking down access problems.
+If you need user roles, you can add them as another layer.
+In enterprise settings we recommend managing that layer in your IAM system, for better security and easier audits.
+
+No automatic cleanup
+^^^^^^^^^^^^^^^^^^^^
+
+SnowDDL drops unused roles for schemas, warehouses, shares and users that no longer exist, to avoid orphaned roles.
+SnowForm doesn't add or remove anything automatically: every object exists because someone declared it.
+Instead, it tries not to create objects you don't need.
+The one exception is the :doc:`modules/access_roles` module, which creates all three access roles for every schema, whether you use them or not.
+
+Object ownership
+^^^^^^^^^^^^^^^^
+
+SnowDDL makes a schema owner role the `owner of every object`_ in its schema, through future ownership grants.
+In SnowForm, the role that creates an object owns it, following the provider it's created with:
+
+* ``SYSADMIN`` owns databases, schemas, warehouses, views and procedures.
+* ``USERADMIN`` owns the access roles and service users.
+* ``SECURITYADMIN`` owns functional roles and authentication policies created with the ``securityadmin`` provider.
+
+The access roles get privileges on the objects, but never ownership.
+So ownership stays with the system roles, and nothing depends on a role that a module could remove.
+
+.. _owner of every object: https://docs.snowddl.com/guides/other-guides/ownership
+
+Dependencies between objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* For RBAC SnowDDL uses a strict `3 tier system`_: access, business, and user roles. That means every user has a dedicated user role.
-  In SnowForm we follow the `simplified recommendation with access and functional roles`_ (analog to first two tiers of SnowDDL system), but skip the individual user roles.
-  As a replacement, admins can rely on custom roles usually managed externally by an IAM system.
-  This can be freely combined with any additional user, team, use case roles that are freely definable and managed by the developers.
-  This way we ensure the flexibility of our template and give developers the freedom to extend the RBAC system as they see fit.
+SnowDDL `resolves dependencies`_ with a fixed order, for example all tables before all views, and needs explicit dependencies only between objects of the same type.
+SnowForm leaves this to Terraform.
+It builds a dependency graph from the references between resources, creates objects in that order, and runs independent ones in parallel.
+When one resource needs another without referencing it, like a grant on a schema that's created in another file, add ``depends_on``.
 
-* SnowDDL doesn't use the native Snowflake secondary roles feature as it is redundant with the tier 3 user roles layer.
-  SnowForm does not enforce the third tier of user roles and the secondary roles feature is enabled by default as per official Snowflake configuration.
-  We made this decision for SnowForm as we want to make our users aware of the roles they are assigned and are currently using.
-  That way the RBAC system is more transparent and the non-technical users have a better intuition of what is needed when onboarding new users or communicating eventual issues.
-  However this is only the default behaviour and the user roles can easily be implemented as additional roles layer if needed.
-  For enterprice ettings we recommend using the established IAM system for managing the "third tier" of user or team roles for better security and easier auditing.
+.. _resolves dependencies: https://docs.snowddl.com/guides/other-guides/dependency-management
 
-* SnowDDL: ``Unused roles for non-existent schemas, warehouses, shares, users are dropped automatically. It helps to reduce amount of "orphan" roles in account.``
-  SnowForm does not introduce any automation! No entities are added or deleted automatically uness so declaratively specifified by a developer.
-  Instead we focus on not introducing any unnecessary or unused entities into the system.
-  The only exception where SnowForm might introduce unused entities is with the `access roles module`_ where all the access roles are created for specified databases and schemas.
+.. _roadmap:
 
-TODOs
------
-* which grants are included in SnowForm access_roles? https://docs.snowddl.com/basic/yaml-configs/permission-model
+Roadmap
+-------
 
-  * We need to extend the grants to all relevant permissions and make it configurable
+* Make the privileges of the access roles configurable per object type, and cover more object types.
+* A setup guide where the first apply also defines the deploy user and its security settings, like authentication policies, in Terraform.
 
-* Create deploy/admin user https://docs.snowddl.com/guides/other-guides/admin
-
-  * prepare tutorial with accountadmin deploy/admin user that can take care of everything with the first tf apply
-  * we want it as the per default we want to set up the security measures as well which are transparent and easier to audit
-
-* research https://docs.snowddl.com/guides/other-guides/ownership
-* Exlplizitely write that our dependencies are managed in terraform VS SnowDDL own mechanism https://docs.snowddl.com/guides/other-guides/dependency-management
-
-.. _access roles module: https://github.com/inovex/snowform_access_roles
 .. _3 tier system: https://docs.snowddl.com/guides/role-hierarchy#general-overview
 .. _simplified recommendation with access and functional roles: https://docs.snowflake.com/en/user-guide/security-access-control-overview#roles
 
@@ -94,5 +112,5 @@ TODOs
 
    self
    getting_started
+   modules/index
    limitations
-
