@@ -6,94 +6,123 @@
 ❄ Introduction
 ================
 
+
+What Is SnowForm
+----------------
+
 SnowForm is a modular template for Snowflake accounts, built on the `official Snowflake Terraform provider`_.
-It helps you set up a new account quickly while following Snowflake's best practices.
-
-It is made for smaller teams or a single administrator managing a Snowflake account.
-The setup is intentionally simple and transparent, so it is easy to understand what every object is for, and easy to extend for your own requirements.
-
-Each part is a separate Terraform module, see :doc:`modules/index`.
+It helps developers set up a new Snowflake account quickly while following Snowflake's best practices and guidelines.
 To set up an account, start with :doc:`getting_started`.
 
 .. _official Snowflake Terraform provider: https://registry.terraform.io/providers/snowflakedb/snowflake/latest/docs
 
-Differences to SnowDDL
-----------------------
 
-`SnowDDL`_ is a standalone tool for managing Snowflake accounts.
+Who It Is For
+-------------
+
+SnowForm is made for smaller teams or a single administrator managing a Snowflake account.
+The setup is intentionally simple, so you can customize it and extend it for the requirements of your organization.
+Every role, grant and database is declared in plain Terraform, and each concern lives in its own module.
+This makes it easy to see what every object in the account is for, and quick to learn how the pieces fit together.
+
+SnowForm uses Terraform or `OpenTofu`_, which many engineers and architects already know, so you can start without learning a new tool.
+It also lets you manage your Snowflake account next to the infrastructure you run on other cloud providers, like Azure or Google Cloud.
+
+.. _OpenTofu: https://opentofu.org/
+
+
+What It Contains
+----------------
+
+At the center is the :doc:`modules/access_roles` module, which sets up role based access control.
+It follows Snowflake's `recommendation of access roles and functional roles`_, and keeps Snowflake's secondary roles enabled.
+
+Access roles form the first tier.
+For every schema, the module creates a read, a read-write and a full access role, and each one includes the one below it.
+Every access role has usage on its database and schema, plus the matching privileges on the objects in the schema, like tables, views and procedures.
+
+Functional roles form the second tier.
+They bundle access roles for a group of users, for example a consumer role that only reads, or a developer role that can also write.
+You define them in your own configuration, like the ``CONSUMER_ROLE`` in the example repository.
+
+Two more modules bring in data that other Snowflake accounts share with you.
+:doc:`modules/import_listing` creates databases from Snowflake shares and grants roles access to them.
+:doc:`modules/logical_import_layer` then maps the tables of these imported databases to views or dynamic tables in your own databases and schemas, grouped by business logic, and keeps their comments.
+
+.. _recommendation of access roles and functional roles: https://docs.snowflake.com/en/user-guide/security-access-control-overview#roles
+
+
+How It Is Built
+---------------
+
+Each module is a small Terraform module in its own repository, and the modules do not depend on each other.
+Your configuration pins every module to a released git tag, so an update only happens when you raise the version.
+See :doc:`modules/index` for what each module creates and all of its inputs.
+
+The modules never configure a provider.
+Instead, you pass them three providers, each logged in with a different Snowflake system role:
+
+* ``useradmin`` creates the roles.
+* ``sysadmin`` creates databases, schemas, views and procedures, and grants privileges on them.
+* ``securityadmin`` grants roles to other roles.
+
+The role that creates an object owns it, so ownership always stays with these system roles.
+Access roles get privileges on objects, but never ownership.
+
+Every module comes with unit tests that plan against a mocked provider, so they run without a Snowflake account.
+On every push, CI runs these tests together with ``tflint``, a format check and a `KICS`_ security scan.
+Your own configuration is deployed the same way: GitHub Actions plans on every push and applies the changes from ``main``.
+
+.. _KICS: https://kics.io/
+
+
+Template Outline
+----------------
+
+SnowForm consists of these repositories:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Repository
+     - Purpose
+   * - `snowform_access_roles`_
+     - Read, read-write and full access roles for every schema, with grants on current and future objects.
+   * - `snowform_import_listing`_
+     - Databases created from Snowflake shares, with ``IMPORTED PRIVILEGES`` for the roles you list.
+   * - `snowform_logical_import_layer`_
+     - Views or dynamic tables that group imported data by business logic and keep its comments.
+   * - `snowform_example_usage`_
+     - A root configuration that uses the three modules to deploy a real test account from GitHub Actions.
+
+Your own configuration can follow the layout of the example repository, with one file per concern:
+
+.. code-block:: text
+
+   terraform/
+   ├── main.tf                              # terraform block and state backend
+   ├── provider.tf                          # the useradmin, sysadmin and securityadmin providers
+   ├── variables.tf                         # deploy user credentials
+   ├── common_db_schema.tf                  # a shared database, schema and warehouse
+   ├── access_roles.tf                      # access roles for each schema
+   ├── functional_roles.tf                  # roles for groups of users, built from access roles
+   ├── import_shares.tf                     # databases from Snowflake shares
+   └── import_shares_logical_grouping.tf    # views on the imported data
+
+.. _snowform_access_roles: https://github.com/inovex/snowform_access_roles
+.. _snowform_import_listing: https://github.com/inovex/snowform_import_listing
+.. _snowform_logical_import_layer: https://github.com/inovex/snowform_logical_import_layer
+.. _snowform_example_usage: https://github.com/inovex/snowform_example_usage
+
+
+Comparison With SnowDDL
+-----------------------
+
+If you are deciding between SnowForm and `SnowDDL`_, see :doc:`snowddl_comparison`.
 
 .. _SnowDDL: https://docs.snowddl.com/
 
-Where SnowDDL Is Stronger
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-* It is stateless. SnowDDL reads the current state directly from the account, so it always sees manual changes.
-* It is more opinionated and very configurable, which suits large accounts and larger teams.
-* It comes with a predefined, fine grained `role hierarchy`_.
-* Setting up a large account makes you review and define every option explicitly, so long term decisions are made up front.
-
-.. _role hierarchy: https://docs.snowddl.com/guides/role-hierarchy#rationale
-
-Where SnowForm Is Stronger
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-* It is built on the `official Snowflake Terraform provider`_, which is maintained and supported by Snowflake.
-* The deployment itself is left to the provider and Terraform, so teams can use the Terraform experience they already have.
-* It is lightweight, so getting started is quick.
-* Everything after the initial deploy user is defined in Terraform, which makes the account transparent and easy to audit.
-* It works with `KICS`_, other security scanners and the rest of the Terraform ecosystem.
-* You can adopt it step by step, and add, remove or replace modules one at a time.
-* It only follows Snowflake's own best practices. For example, SnowDDL enforces a `convention for object identifiers`_, while SnowForm only follows the `Snowflake identifier requirements`_.
-
-.. _KICS: https://kics.io/
-.. _convention for object identifiers: https://docs.snowddl.com/guides/object-identifiers
-.. _Snowflake identifier requirements: https://docs.snowflake.com/en/sql-reference/identifiers-syntax
-
-Role Hierarchy
-^^^^^^^^^^^^^^
-
-SnowDDL uses a strict `3 tier system`_ of access, business and user roles, so every user has a dedicated user role.
-SnowForm follows Snowflake's `simplified recommendation with access and functional roles`_, which matches SnowDDL's first two tiers, and skips the user roles.
-Instead, you can use roles managed by an external IAM system, and combine them with any user, team or use case roles your developers define.
-
-SnowDDL does not use Snowflake's secondary roles, since its user roles make them redundant.
-In SnowForm, secondary roles stay enabled, which is Snowflake's default.
-That way users see which roles they have and which one they are using, which helps when onboarding people or tracking down access problems.
-If you need user roles, you can add them as another layer.
-In enterprise settings we recommend managing that layer in your IAM system, for better security and easier audits.
-
-No Automatic Cleanup
-^^^^^^^^^^^^^^^^^^^^
-
-SnowDDL drops unused roles for schemas, warehouses, shares and users that no longer exist, to avoid orphaned roles.
-SnowForm does not add or remove anything automatically: every object exists because someone declared it.
-Instead, it tries not to create objects you do not need.
-The one exception is the :doc:`modules/access_roles` module, which creates all three access roles for every schema, whether you use them or not.
-
-Object Ownership
-^^^^^^^^^^^^^^^^
-
-SnowDDL makes a schema owner role the `owner of every object`_ in its schema, through future ownership grants.
-In SnowForm, the role that creates an object owns it, following the provider it is created with:
-
-* ``SYSADMIN`` owns databases, schemas, warehouses, views and procedures.
-* ``USERADMIN`` owns the access roles and service users.
-* ``SECURITYADMIN`` owns functional roles and authentication policies created with the ``securityadmin`` provider.
-
-The access roles get privileges on the objects, but never ownership.
-So ownership stays with the system roles, and nothing depends on a role that a module could remove.
-
-.. _owner of every object: https://docs.snowddl.com/guides/other-guides/ownership
-
-Dependencies Between Objects
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-SnowDDL `resolves dependencies`_ with a fixed order, for example all tables before all views, and needs explicit dependencies only between objects of the same type.
-SnowForm leaves this to Terraform.
-It builds a dependency graph from the references between resources, creates objects in that order, and runs independent ones in parallel.
-When one resource needs another without referencing it, like a grant on a schema that is created in another file, add ``depends_on``.
-
-.. _resolves dependencies: https://docs.snowddl.com/guides/other-guides/dependency-management
 
 .. _roadmap:
 
@@ -103,9 +132,6 @@ Roadmap
 * Make the privileges of the access roles configurable per object type, and cover more object types.
 * A setup guide where the first apply also defines the deploy user and its security settings, like authentication policies, in Terraform.
 
-.. _3 tier system: https://docs.snowddl.com/guides/role-hierarchy#general-overview
-.. _simplified recommendation with access and functional roles: https://docs.snowflake.com/en/user-guide/security-access-control-overview#roles
-
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
@@ -114,3 +140,4 @@ Roadmap
    getting_started
    modules/index
    limitations
+   snowddl_comparison
