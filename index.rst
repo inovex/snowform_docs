@@ -43,7 +43,7 @@ Every access role has usage on its database and schema, plus the matching privil
 
 Functional roles form the second tier.
 They bundle access roles for a group of users, for example a consumer role that only reads, or a developer role that can also write.
-You define them in your own configuration, like the ``CONSUMER_ROLE`` in the example repository.
+You define them in your own configuration, like the ``CONSUMER_ROLE`` in the `example repository <https://github.com/inovex/snowform_example_usage/blob/6d08f9c6cc398e2baf74e64e5d202aa5923d7532/terraform/functional_roles.tf#L1-L5>`__.
 
 Two more modules bring in data that other Snowflake accounts share with you.
 :doc:`modules/import_listing` creates databases from Snowflake shares and grants roles access to them.
@@ -56,11 +56,11 @@ How It Is Built
 ---------------
 
 Each module is a small Terraform module in its own repository, and the modules do not depend on each other.
-Your configuration pins every module to a released git tag, so an update only happens when you raise the version.
+Your configuration pins every module to a released git tag, like the `access roles module in the example <https://github.com/inovex/snowform_example_usage/blob/6d08f9c6cc398e2baf74e64e5d202aa5923d7532/terraform/access_roles.tf#L2>`__, so an update only happens when you raise the version.
 See :doc:`modules/index` for what each module creates and all of its inputs.
 
 The modules never configure a provider.
-Instead, you pass them three providers, each logged in with a different Snowflake system role:
+Instead, you pass them three `providers <https://github.com/inovex/snowform_example_usage/blob/6d08f9c6cc398e2baf74e64e5d202aa5923d7532/terraform/provider.tf>`__, each logged in with a different Snowflake system role:
 
 * ``useradmin`` creates the roles.
 * ``sysadmin`` creates databases, schemas, views and procedures, and grants privileges on them.
@@ -69,8 +69,8 @@ Instead, you pass them three providers, each logged in with a different Snowflak
 The role that creates an object owns it, so ownership always stays with these system roles.
 Access roles get privileges on objects, but never ownership.
 
-Every module comes with unit tests that plan against a mocked provider, so they run without a Snowflake account.
-On every push, CI runs these tests together with ``tflint``, a format check and a `KICS`_ security scan.
+Every module comes with `unit tests <https://github.com/inovex/snowform_access_roles/tree/0.0.2/tests>`__ that plan against a mocked provider, so they run without a Snowflake account.
+On every push, `CI <https://github.com/inovex/snowform_access_roles/blob/0.0.2/.github/workflows/github_actions.yaml>`__ runs these tests together with ``tflint``, a format check and a `KICS`_ security scan.
 Your own configuration is deployed the same way: GitHub Actions plans on every push and applies the changes from ``main``.
 
 .. _KICS: https://kics.io/
@@ -96,19 +96,30 @@ SnowForm consists of these repositories:
    * - `snowform_example_usage`_
      - A root configuration that uses the three modules to deploy a real test account from GitHub Actions.
 
-Your own configuration can follow the layout of the example repository, with one file per concern:
+Your own configuration can follow the layout of the example repository, with one file per concern in its ``terraform`` folder:
 
-.. code-block:: text
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
 
-   terraform/
-   ├── main.tf                              # terraform block and state backend
-   ├── provider.tf                          # the useradmin, sysadmin and securityadmin providers
-   ├── variables.tf                         # deploy user credentials
-   ├── common_db_schema.tf                  # a shared database, schema and warehouse
-   ├── access_roles.tf                      # access roles for each schema
-   ├── functional_roles.tf                  # roles for groups of users, built from access roles
-   ├── import_shares.tf                     # databases from Snowflake shares
-   └── import_shares_logical_grouping.tf    # views on the imported data
+   * - File
+     - Contents
+   * - `main.tf <https://github.com/inovex/snowform_example_usage/blob/6d08f9c6cc398e2baf74e64e5d202aa5923d7532/terraform/main.tf>`__
+     - The ``terraform`` block and the state backend.
+   * - `provider.tf <https://github.com/inovex/snowform_example_usage/blob/6d08f9c6cc398e2baf74e64e5d202aa5923d7532/terraform/provider.tf>`__
+     - The ``useradmin``, ``sysadmin`` and ``securityadmin`` providers.
+   * - `variables.tf <https://github.com/inovex/snowform_example_usage/blob/6d08f9c6cc398e2baf74e64e5d202aa5923d7532/terraform/variables.tf>`__
+     - The credentials of the deploy user.
+   * - `common_db_schema.tf <https://github.com/inovex/snowform_example_usage/blob/6d08f9c6cc398e2baf74e64e5d202aa5923d7532/terraform/common_db_schema.tf>`__
+     - A shared database, schema and warehouse.
+   * - `access_roles.tf <https://github.com/inovex/snowform_example_usage/blob/6d08f9c6cc398e2baf74e64e5d202aa5923d7532/terraform/access_roles.tf>`__
+     - Access roles for each schema.
+   * - `functional_roles.tf <https://github.com/inovex/snowform_example_usage/blob/6d08f9c6cc398e2baf74e64e5d202aa5923d7532/terraform/functional_roles.tf>`__
+     - Roles for groups of users, built from access roles.
+   * - `import_shares.tf <https://github.com/inovex/snowform_example_usage/blob/6d08f9c6cc398e2baf74e64e5d202aa5923d7532/terraform/import_shares.tf>`__
+     - Databases from Snowflake shares.
+   * - `import_shares_logical_grouping.tf <https://github.com/inovex/snowform_example_usage/blob/6d08f9c6cc398e2baf74e64e5d202aa5923d7532/terraform/import_shares_logical_grouping.tf>`__
+     - Views on the imported data.
 
 .. _snowform_access_roles: https://github.com/inovex/snowform_access_roles
 .. _snowform_import_listing: https://github.com/inovex/snowform_import_listing
