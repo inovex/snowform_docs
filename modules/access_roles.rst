@@ -17,7 +17,7 @@ For a database ``SALES`` and a schema ``RAW`` you get:
 * ``SALES_RAW_RW`` also writes to tables and stages and operates tasks and dynamic tables.
 * ``SALES_RAW_FULL`` also gets all privileges on the schema itself, so it can create, change and drop objects.
 
-The roles inherit from each other: ``R`` is granted to ``RW``, and ``RW`` to ``FULL``.
+The roles `inherit from each other <https://github.com/inovex/snowform_access_roles/blob/0.0.2/role_hierarchy.tf>`__: ``R`` is granted to ``RW``, and ``RW`` to ``FULL``.
 So ``FULL`` has all read and write privileges without granting them twice.
 All three roles are also granted to ``SYSADMIN``, so the system administrator can always reach every object.
 
@@ -27,6 +27,7 @@ Privileges
 
 All three roles get ``USAGE`` on the database and the schema.
 The read and write privileges are granted on all existing objects and on future objects, so new tables get the right access without another deploy.
+The table below follows the `read privileges <https://github.com/inovex/snowform_access_roles/blob/0.0.2/role_privileges_r.tf#L5-L46>`__ and `write privileges <https://github.com/inovex/snowform_access_roles/blob/0.0.2/role_privileges_rw.tf#L5-L22>`__ defined in the module.
 
 .. list-table::
    :header-rows: 1
@@ -56,7 +57,7 @@ The read and write privileges are granted on all existing objects and on future 
      - MONITOR
      - OPERATE
 
-``FULL`` gets ``ALL PRIVILEGES`` on the schema.
+``FULL`` gets `ALL PRIVILEGES <https://github.com/inovex/snowform_access_roles/blob/0.0.2/role_privileges_full.tf#L7>`__ on the schema.
 That covers the ``CREATE`` privileges for every object type, plus ``MODIFY`` and ``MONITOR`` on the schema.
 
 The grants on all existing objects use ``always_apply``, so every plan shows them as changes.

@@ -16,7 +16,7 @@ For everything else there is the ``snowflake_execute`` resource: it runs one SQL
      revert   = "REVOKE CREATE NETWORK RULE ON SCHEMA COMMON.COMMON FROM ROLE SECURITYADMIN"
    }
 
-The example repository uses it the same way to create a Snowflake-managed MCP server, which has no resource yet.
+The example repository uses it the same way to `create a Snowflake-managed MCP server <https://github.com/inovex/snowform_example_usage/blob/6d08f9c6cc398e2baf74e64e5d202aa5923d7532/terraform/claude_debug_access.tf#L117-L134>`__, which has no resource yet.
 Keep these cases rare, because ``snowflake_execute`` does not detect changes made outside Terraform.
 It only runs ``revert`` and then ``execute`` again when the SQL itself changes.
 If an object created this way loses grants when it is replaced, add ``replace_triggered_by`` to the grant, so it is granted again too.

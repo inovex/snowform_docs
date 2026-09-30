@@ -25,7 +25,7 @@ Terraform runs as a service user that logs in with a key pair.
 Everything else, including the roles and users of your team, is created by Terraform later.
 
 Generate an encrypted key pair.
-Keep the private key out of git (the example's ``.gitignore`` excludes ``*.p8`` and ``*.pu``):
+Keep the private key out of git (the example's `.gitignore <https://github.com/inovex/snowform_example_usage/blob/6d08f9c6cc398e2baf74e64e5d202aa5923d7532/.gitignore#L39-L41>`__ excludes ``*.p8`` and ``*.pu``):
 
 .. code-block:: sh
 
@@ -78,7 +78,8 @@ They expect three aliased providers, one per system role, so every object is cre
 
    # Same block again with alias/role "useradmin"/"USERADMIN" and "securityadmin"/"SECURITYADMIN".
 
-Give the ``securityadmin`` provider a warehouse too, and grant ``SECURITYADMIN`` usage on it.
+The example's `provider.tf <https://github.com/inovex/snowform_example_usage/blob/6d08f9c6cc398e2baf74e64e5d202aa5923d7532/terraform/provider.tf>`__ has all three blocks.
+Give the ``securityadmin`` provider a warehouse too, and `grant SECURITYADMIN usage on it <https://github.com/inovex/snowform_example_usage/blob/6d08f9c6cc398e2baf74e64e5d202aa5923d7532/terraform/claude_debug_access.tf#L100-L108>`__.
 Some reads, like the one after attaching an authentication policy to a user, fail without one.
 
 Several resources are preview features in the provider and have to be listed in ``preview_features_enabled``.
@@ -110,7 +111,7 @@ Its README explains how to restore an older state version.
 ------------------
 
 Reference each module by a release tag.
-This creates access roles for a ``COMMON`` database with one schema:
+This creates access roles for a ``COMMON`` database with one schema, like the example's `access_roles.tf <https://github.com/inovex/snowform_example_usage/blob/6d08f9c6cc398e2baf74e64e5d202aa5923d7532/terraform/access_roles.tf#L1-L18>`__:
 
 .. code-block:: hcl
 

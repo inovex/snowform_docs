@@ -12,13 +12,13 @@ How It Works
 ------------
 
 By default the module creates a view for every mapping.
-A plain ``CREATE VIEW`` would lose the column comments of the source, so the module deploys a small Python stored procedure, ``CREATE_VIEW_WITH_COLUMN_COMMENTS``.
+A plain ``CREATE VIEW`` would lose the column comments of the source, so the module deploys a small `Python stored procedure <https://github.com/inovex/snowform_logical_import_layer/blob/0.0.5/create_view_with_comments_procedure.py>`__, ``CREATE_VIEW_WITH_COLUMN_COMMENTS``.
 It reads the comments from the source's ``INFORMATION_SCHEMA`` and creates the view with them.
-Terraform calls it once per mapping, and creates all views again whenever the procedure changes.
+Terraform calls it once per mapping, and `creates all views again <https://github.com/inovex/snowform_logical_import_layer/blob/0.0.5/main.tf#L26-L31>`__ whenever the procedure changes.
 
 With ``resource_type = "dynamic_table"`` you get dynamic tables instead, which store the data and refresh on a schedule.
 
-The roles in ``database_role_grants`` get ``USAGE`` on the target database and on all current and future schemas in it, plus ``SELECT`` on all current and future views.
+The roles in ``database_role_grants`` get ``USAGE`` on the target database and on all current and future schemas in it, plus ``SELECT`` on all `current and future views <https://github.com/inovex/snowform_logical_import_layer/blob/0.0.5/main.tf#L90-L123>`__.
 
 
 Before You Start
@@ -95,4 +95,4 @@ Known Limitations
 -----------------
 
 * The read grants only cover views. With ``resource_type = "dynamic_table"``, grant ``SELECT`` on the dynamic tables yourself.
-* If the procedure fails, it returns an error message instead of raising an error. Terraform then reports success even though the view was not created, so check the views after the first deploy.
+* If the procedure fails, it `returns an error message <https://github.com/inovex/snowform_logical_import_layer/blob/0.0.5/create_view_with_comments_procedure.py#L106-L113>`__ instead of raising an error. Terraform then reports success even though the view was not created, so check the views after the first deploy.
