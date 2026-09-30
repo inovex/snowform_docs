@@ -1,6 +1,8 @@
 # snowform_docs
 Documentation for the SnowForm, a modular terraform based snowflake template
 
+The documentation is published at https://inovex.github.io/snowform_docs/.
+
 
 ## Introduction:
 ### What is SnowForm:
